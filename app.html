@@ -26,6 +26,9 @@
       >
         <span class="navbar-toggler-icon"></span>
       </button>
+      <button class="btn btn-primary" id="clear-data">
+        Clear data
+      </button>
     </nav>
 
     <div class="container card card-body">
@@ -40,7 +43,7 @@
             <input
               type="submit"
               value="Add Meal"
-              id="add-Meal"
+              id="add-meal"
               class="btn btn-primary"
             />
           </form>
@@ -51,13 +54,15 @@
           <p>calories</p>
           <form>
             <label for="add-calories">Add Calories</label>
-            <input type="text" id="add-calories" />
+            <input type="number" id="add-calories" />
           </form>
         </div>
       </div>
     </div>
 
-    <h2 class="center">Total Calories: <span>0</span></h2>
+    <h2 class="center">Total Calories: <span id="total-calories">0</span></h2>
+
+    <div class="items-parent container card-body"></div>
 
     <!-- BOotstrap and script -->
     <script
