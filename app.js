@@ -1,6 +1,6 @@
 // local storage controller
 
-// item controller
+// -----------------------ITEM CONTROLLER----------------------
 const itemCtrl = (function () {
   const Item = function (id, name, calories) {
     this.id = id;
@@ -10,7 +10,10 @@ const itemCtrl = (function () {
 
   //   data Structure
   const data = {
-    item: [{ id: 0, name: "Steak Dinner", calories: 1200 }],
+    item: [
+      { id: 0, name: "Steak Dinner", calories: 1200 },
+      { id: 1, name: "Pasta", calories: 1000 },
+    ],
 
     currentItem: null,
     totalCalories: 0,
@@ -35,13 +38,22 @@ const itemCtrl = (function () {
       return newItem;
     },
 
+    getTotalCal: function () {
+      let total = 0;
+      data.item.forEach((item) => {
+        total += item.calories;
+      });
+      data.totalCalories = total;
+      return data.totalCalories;
+    },
+
     logData: function () {
       return data;
     },
   };
 })();
 
-// Ui controller
+// ------------------------UI CONTROLLER------------------------
 const UICtrl = (function () {
   return {
     populateItemList: function (items) {
@@ -53,7 +65,7 @@ const UICtrl = (function () {
                 <strong>${item.name}: </strong> 
                 <em>${item.calories}</em>
                 <a href="#" class="">
-                    <i class="fa fa-pencil"></li>
+                    <i class="fa fa-pencil"></i>
                 </a>
             </li>
         `;
@@ -76,7 +88,7 @@ const UICtrl = (function () {
       li.innerHTML = `<strong>${item.name}: </strong>
                         <em>${item.calories} Calories</em>
                         <a href="#" class="">
-                            <i class=""></i>
+                            <i class="fa fa-pencil"></i>
                         </a>`;
 
       document.querySelector(".items-parent").appendChild(li);
@@ -86,16 +98,27 @@ const UICtrl = (function () {
       document.querySelector("#add-item").value = "";
       document.querySelector("#add-calories").value = "";
     },
+
+    updateCounter: function (totalcalories) {
+      let counter = document.querySelector("#total-calories");
+      counter.innerText = totalcalories;
+    },
   };
 })();
 
-// app controller
+// ---------------------APP CONTROLLER------------------------
 const app = (function (a, b) {
   // load event listeners
   const loadEventListeners = function () {
     document
       .querySelector("#add-meal")
-      .addEventListener("click", itemAddSubmit);
+      .addEventListener("click", itemAddSubmit),
+      document
+        .querySelector("#clear-data")
+        .addEventListener("click", clearList),
+      document
+        .querySelector(".items-parent")
+        .addEventListener("click", editItem);
   };
 
   //   functions for event listeners
@@ -111,8 +134,25 @@ const app = (function (a, b) {
       UICtrl.addListItem(newItem);
       //   clear the input values
       UICtrl.clearInputValue();
+      //   update the total calorie counter
+      itemCtrl.getTotalCal();
+      UICtrl.updateCounter(itemCtrl.getTotalCal());
     } else {
       alert("must enter value");
+    }
+  };
+
+  const clearList = function (e) {
+    e.preventDefault();
+    // unfinished, take the data and clear it then update the dom
+    let data = itemCtrl.getItems();
+  };
+
+  const editItem = (e) => {
+    e.preventDefault();
+    console.log(e.target);
+    if (e.target.className === "fa fa-pencil") {
+      //    toggle the edit state
     }
   };
 
@@ -123,6 +163,9 @@ const app = (function (a, b) {
       console.log(items);
       //   put the items into the ui and show them
       b.populateItemList(items);
+      // calculate total calories on load
+      itemCtrl.getTotalCal();
+      UICtrl.updateCounter(itemCtrl.getTotalCal());
 
       //   load the event listeners
       loadEventListeners();
