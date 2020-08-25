@@ -47,6 +47,24 @@ const itemCtrl = (function () {
       return data.totalCalories;
     },
 
+    getItemByID: function (id) {
+      let found = null;
+      data.item.forEach((item) => {
+        if (item.id === id) {
+          found = item;
+        }
+      });
+      return found;
+    },
+
+    setCurrentItem: function (item) {
+      data.currentItem = item;
+    },
+
+    getCurrentItem: function () {
+      return data.currentItem;
+    },
+
     logData: function () {
       return data;
     },
@@ -56,6 +74,21 @@ const itemCtrl = (function () {
 // ------------------------UI CONTROLLER------------------------
 const UICtrl = (function () {
   return {
+    clearEditState: function () {
+      // hide the edit state upon load
+      this.clearInputValue();
+      document.querySelector("#update-meal").style.display = "none";
+      document.querySelector("#delete-meal").style.display = "none";
+      document.querySelector("#back").style.display = "none";
+    },
+
+    showEditState: function (item) {
+      this.clearInputValue();
+      document.querySelector("#update-meal").style.display = "inline-block";
+      document.querySelector("#delete-meal").style.display = "inline-block";
+      document.querySelector("#back").style.display = "inline-block";
+    },
+
     populateItemList: function (items) {
       let html = "";
 
@@ -102,6 +135,15 @@ const UICtrl = (function () {
     updateCounter: function (totalcalories) {
       let counter = document.querySelector("#total-calories");
       counter.innerText = totalcalories;
+    },
+
+    loadItemValues: function () {
+      document.getElementById(
+        "add-item"
+      ).value = itemCtrl.getCurrentItem().name;
+      document.getElementById(
+        "add-calories"
+      ).value = itemCtrl.getCurrentItem().calories;
     },
   };
 })();
@@ -152,13 +194,29 @@ const app = (function (a, b) {
     e.preventDefault();
     console.log(e.target);
     if (e.target.className === "fa fa-pencil") {
-      //    toggle the edit state
+      //    show the edit state
+      UICtrl.showEditState();
+      // grab list and get its id value
+      item = e.target.parentElement.parentElement.id;
+      // seperate the number from the id
+      const array = item.split("-");
+      const ID = parseInt(array[1]);
+      // find the id in the database
+      const itemToEdit = itemCtrl.getItemByID(ID);
+      console.log(itemToEdit);
+      // set itemtoedit as the current item in the data
+      itemCtrl.setCurrentItem(itemToEdit);
+      // load current item values into the inputs
+      UICtrl.loadItemValues();
     }
   };
 
   return {
     init: function () {
       console.log("Init the app, creat data");
+      // hide the edit state
+      UICtrl.clearEditState();
+
       let items = a.getItems();
       console.log(items);
       //   put the items into the ui and show them
