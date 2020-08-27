@@ -10,9 +10,11 @@ const itemCtrl = (function () {
 
   //   data Structure
   const data = {
-    item: [
+    items: [
       { id: 0, name: "Steak Dinner", calories: 1200 },
       { id: 1, name: "Pasta", calories: 1000 },
+      { id: 2, name: "chicken", calories: 600 },
+      { id: 3, name: "beef", calories: 800 },
     ],
 
     currentItem: null,
@@ -21,26 +23,26 @@ const itemCtrl = (function () {
 
   return {
     getItems: function () {
-      return data.item;
+      return data.items;
     },
     addItem: function (name, calories) {
       let ID;
-      if (data.item.length > 0) {
-        ID = data.item[data.item.length - 1].id + 1;
+      if (data.items.length > 0) {
+        ID = data.items[data.items.length - 1].id + 1;
       } else {
         ID = 0;
       }
       calories = parseInt(calories);
       //   if everything checks out, add it to the data
       newItem = new Item(ID, name, calories);
-      data.item.push(newItem);
+      data.items.push(newItem);
 
       return newItem;
     },
 
     getTotalCal: function () {
       let total = 0;
-      data.item.forEach((item) => {
+      data.items.forEach((item) => {
         total += item.calories;
       });
       data.totalCalories = total;
@@ -49,7 +51,7 @@ const itemCtrl = (function () {
 
     getItemByID: function (id) {
       let found = null;
-      data.item.forEach((item) => {
+      data.items.forEach((item) => {
         if (item.id === id) {
           found = item;
         }
@@ -65,6 +67,30 @@ const itemCtrl = (function () {
       return data.currentItem;
     },
 
+    updateItem: function (input) {
+      let currentItem = this.getCurrentItem();
+      currentItem.name = input.name;
+      currentItem.calories = parseInt(input.calories);
+      console.log(currentItem);
+    },
+
+    deleteItem: function (id) {
+      // need to find the index of the id becuase the index changes when the data is deleted
+      let ids = data.items.map((item) => {
+        return item.id;
+      });
+      // find the index of the id
+      index = ids.indexOf(id);
+      console.log(index);
+      data.items.splice(index, 1);
+
+      console.log(data);
+    },
+
+    deleteData: function () {
+      data.items = [];
+    },
+
     logData: function () {
       return data;
     },
@@ -77,13 +103,15 @@ const UICtrl = (function () {
     clearEditState: function () {
       // hide the edit state upon load
       this.clearInputValue();
+      document.querySelector("#add-meal").style.display = "inline-block";
       document.querySelector("#update-meal").style.display = "none";
       document.querySelector("#delete-meal").style.display = "none";
       document.querySelector("#back").style.display = "none";
     },
 
-    showEditState: function (item) {
+    showEditState: function () {
       this.clearInputValue();
+      document.querySelector("#add-meal").style.display = "none";
       document.querySelector("#update-meal").style.display = "inline-block";
       document.querySelector("#delete-meal").style.display = "inline-block";
       document.querySelector("#back").style.display = "inline-block";
@@ -160,7 +188,14 @@ const app = (function (a, b) {
         .addEventListener("click", clearList),
       document
         .querySelector(".items-parent")
-        .addEventListener("click", editItem);
+        .addEventListener("click", editItem),
+      document.getElementById("back").addEventListener("click", backSubmit),
+      document
+        .getElementById("update-meal")
+        .addEventListener("click", updateMeal),
+      document
+        .getElementById("delete-meal")
+        .addEventListener("click", deleteMeal);
   };
 
   //   functions for event listeners
@@ -187,7 +222,12 @@ const app = (function (a, b) {
   const clearList = function (e) {
     e.preventDefault();
     // unfinished, take the data and clear it then update the dom
-    let data = itemCtrl.getItems();
+    itemCtrl.deleteData();
+    // update ui
+    items = itemCtrl.getItems();
+    UICtrl.populateItemList(items);
+    itemCtrl.getTotalCal();
+    UICtrl.updateCounter(itemCtrl.getTotalCal());
   };
 
   const editItem = (e) => {
@@ -209,6 +249,40 @@ const app = (function (a, b) {
       // load current item values into the inputs
       UICtrl.loadItemValues();
     }
+  };
+
+  const backSubmit = (e) => {
+    e.preventDefault();
+    UICtrl.clearEditState();
+  };
+
+  const updateMeal = (e) => {
+    e.preventDefault();
+    //  on click log the input values
+    const input = UICtrl.getItemInput();
+    // update the currentitem with the new values
+    itemCtrl.updateItem(input);
+    // update the ui list
+    items = itemCtrl.getItems();
+    UICtrl.populateItemList(items);
+    // update the total calories counter
+    const totalCalories = itemCtrl.getTotalCal();
+    UICtrl.updateCounter(totalCalories);
+  };
+
+  const deleteMeal = (e) => {
+    e.preventDefault();
+    // on click get current item
+    const item = itemCtrl.getCurrentItem();
+    itemCtrl.deleteItem(item.id);
+    // get new data and update the ui list
+    let list = itemCtrl.getItems();
+    UICtrl.populateItemList(list);
+    // update total calories
+    const totalCalories = itemCtrl.getTotalCal();
+    UICtrl.updateCounter(totalCalories);
+    // clear the edit state
+    UICtrl.clearEditState();
   };
 
   return {
