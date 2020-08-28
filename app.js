@@ -1,4 +1,42 @@
 // local storage controller
+const StorageCtrl = (function () {
+  return {
+    storeItems: function (item) {
+      let items;
+      // check local storage before storing
+      if (localStorage.getItem("items") === null) {
+        items = [];
+        items.push(item);
+        localStorage.setItem("items", JSON.stringify(items));
+      } else {
+        items = JSON.parse(localStorage.getItem("items"));
+        items.push(item);
+        localStorage.setItem("items", JSON.stringify(items));
+      }
+    },
+
+    getItems: function () {
+      let items;
+      if (localStorage.getItem("items") === null) {
+        items = [];
+      } else {
+        items = JSON.parse(localStorage.getItem("items"));
+      }
+
+      return items;
+    },
+
+    updateItems: function (updateitem) {
+      console.log(updateitem);
+      items = JSON.parse(localStorage.getItem("items"));
+    },
+
+    display: function () {
+      let items = this.getItems();
+      console.log(items);
+    },
+  };
+})();
 
 // -----------------------ITEM CONTROLLER----------------------
 const itemCtrl = (function () {
@@ -10,13 +48,13 @@ const itemCtrl = (function () {
 
   //   data Structure
   const data = {
-    items: [
-      { id: 0, name: "Steak Dinner", calories: 1200 },
-      { id: 1, name: "Pasta", calories: 1000 },
-      { id: 2, name: "chicken", calories: 600 },
-      { id: 3, name: "beef", calories: 800 },
-    ],
-
+    // items: [
+    //   { id: 0, name: "Steak Dinner", calories: 1200 },
+    //   { id: 1, name: "Pasta", calories: 1000 },
+    //   { id: 2, name: "chicken", calories: 600 },
+    //   { id: 3, name: "beef", calories: 800 },
+    // ],
+    items: StorageCtrl.getItems(),
     currentItem: null,
     totalCalories: 0,
   };
@@ -122,9 +160,9 @@ const UICtrl = (function () {
 
       items.forEach((item) => {
         html += ` 
-            <li id="item-${item.id}" class="list-group-item"
+            <li id="item-${item.id}" class="list-group-item">
                 <strong>${item.name}: </strong> 
-                <em>${item.calories}</em>
+                <em>${item.calories} Calories</em>
                 <a href="#" class="">
                     <i class="fa fa-pencil"></i>
                 </a>
@@ -177,7 +215,7 @@ const UICtrl = (function () {
 })();
 
 // ---------------------APP CONTROLLER------------------------
-const app = (function (a, b) {
+const app = (function (a, b, StorageCtrl) {
   // load event listeners
   const loadEventListeners = function () {
     document
@@ -205,8 +243,10 @@ const app = (function (a, b) {
     const input = UICtrl.getItemInput();
     console.log(input);
     if (input.name !== "" && input.calories !== "") {
-      // if inputs are valid,  add item to data, newitem variable to be used later
+      // if inputs are valid,  add item to data and to local storage
       const newItem = itemCtrl.addItem(input.name, input.calories);
+      StorageCtrl.storeItems(newItem);
+      StorageCtrl.display();
       //   after adding to data, add item to UI list
       UICtrl.addListItem(newItem);
       //   clear the input values
@@ -228,6 +268,8 @@ const app = (function (a, b) {
     UICtrl.populateItemList(items);
     itemCtrl.getTotalCal();
     UICtrl.updateCounter(itemCtrl.getTotalCal());
+    // clear state as well if in edit state
+    UICtrl.clearEditState();
   };
 
   const editItem = (e) => {
@@ -243,7 +285,6 @@ const app = (function (a, b) {
       const ID = parseInt(array[1]);
       // find the id in the database
       const itemToEdit = itemCtrl.getItemByID(ID);
-      console.log(itemToEdit);
       // set itemtoedit as the current item in the data
       itemCtrl.setCurrentItem(itemToEdit);
       // load current item values into the inputs
@@ -262,6 +303,8 @@ const app = (function (a, b) {
     const input = UICtrl.getItemInput();
     // update the currentitem with the new values
     itemCtrl.updateItem(input);
+    // update the local storage
+    StorageCtrl.updateItems(input);
     // update the ui list
     items = itemCtrl.getItems();
     UICtrl.populateItemList(items);
@@ -303,6 +346,6 @@ const app = (function (a, b) {
       loadEventListeners();
     },
   };
-})(itemCtrl, UICtrl);
+})(itemCtrl, UICtrl, StorageCtrl);
 
 app.init();
