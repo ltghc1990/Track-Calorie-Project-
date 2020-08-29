@@ -27,13 +27,29 @@ const StorageCtrl = (function () {
     },
 
     updateItems: function (updateitem) {
-      console.log(updateitem);
       items = JSON.parse(localStorage.getItem("items"));
+      items.forEach((item, index) => {
+        if (item.id === updateitem.id) {
+          items.splice(index, 1, updateitem);
+        }
+      });
+      localStorage.setItem("items", JSON.stringify(items));
     },
 
-    display: function () {
-      let items = this.getItems();
-      console.log(items);
+    deleteItem(ditem) {
+      items = JSON.parse(localStorage.getItem("items"));
+      items.forEach((item, index) => {
+        if (item.id === ditem.id) {
+          items.splice(index, 1);
+        }
+      });
+      localStorage.setItem("items", JSON.stringify(items));
+    },
+
+    deleteData: function () {
+      items = JSON.parse(localStorage.getItem("items"));
+      items = [];
+      localStorage.setItem("items", JSON.stringify(items));
     },
   };
 })();
@@ -109,7 +125,7 @@ const itemCtrl = (function () {
       let currentItem = this.getCurrentItem();
       currentItem.name = input.name;
       currentItem.calories = parseInt(input.calories);
-      console.log(currentItem);
+      return currentItem;
     },
 
     deleteItem: function (id) {
@@ -246,7 +262,6 @@ const app = (function (a, b, StorageCtrl) {
       // if inputs are valid,  add item to data and to local storage
       const newItem = itemCtrl.addItem(input.name, input.calories);
       StorageCtrl.storeItems(newItem);
-      StorageCtrl.display();
       //   after adding to data, add item to UI list
       UICtrl.addListItem(newItem);
       //   clear the input values
@@ -263,6 +278,7 @@ const app = (function (a, b, StorageCtrl) {
     e.preventDefault();
     // unfinished, take the data and clear it then update the dom
     itemCtrl.deleteData();
+    StorageCtrl.deleteData();
     // update ui
     items = itemCtrl.getItems();
     UICtrl.populateItemList(items);
@@ -302,11 +318,11 @@ const app = (function (a, b, StorageCtrl) {
     //  on click log the input values
     const input = UICtrl.getItemInput();
     // update the currentitem with the new values
-    itemCtrl.updateItem(input);
+    updatedItem = itemCtrl.updateItem(input);
     // update the local storage
-    StorageCtrl.updateItems(input);
+    StorageCtrl.updateItems(updatedItem);
     // update the ui list
-    items = itemCtrl.getItems();
+    let items = itemCtrl.getItems();
     UICtrl.populateItemList(items);
     // update the total calories counter
     const totalCalories = itemCtrl.getTotalCal();
@@ -318,6 +334,7 @@ const app = (function (a, b, StorageCtrl) {
     // on click get current item
     const item = itemCtrl.getCurrentItem();
     itemCtrl.deleteItem(item.id);
+    StorageCtrl.deleteItem(item);
     // get new data and update the ui list
     let list = itemCtrl.getItems();
     UICtrl.populateItemList(list);
